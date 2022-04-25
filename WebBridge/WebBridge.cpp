@@ -35,14 +35,19 @@ namespace Plugin {
         Core::JSON::String Callsign;
     };
 
-    class Envelope: public Core::JSONRPC::Message {
+    class Envelope: public Core::JSON::Container {
     public:
-      Envelope() : Core::JSONRPC::Message() {
-        Remove(_T("params"));
-        Remove(_T("result"));
+      Envelope() : Core::JSON::Container() {
+        Add(_T("jsonrpc"), &ProtocolVersion);
+        Add(_T("id"), &Id);
+        Add(_T("method"), &Designator);
         Add(_T("params"), &Params);
         Add(_T("result"), &Result);
+        ProtocolVersion = "2.0";
       }
+
+      Envelope(const Envelope &rhs)  = delete;
+
       struct CallContext : public Core::JSON::Container {
         CallContext() : Core::JSON::Container(), ChannelId(0), Token() {
           Add(_T("channel"), &ChannelId);
@@ -67,22 +72,33 @@ namespace Plugin {
         CallContext Context;
         Core::JSONRPC::Message Response;
       };
+
+      Core::JSON::String ProtocolVersion;
+      Core::JSON::DecUInt32 Id;
+      Core::JSON::String Designator;
       Parameters Params;
       ResultType Result;
 
       static Core::ProxyType<Envelope> NewFromElement(const Core::ProxyType<Core::JSON::IElement> & element)
       {
         // TODO: is there a better way to do this?
-        Core::ProxyType<Envelope> message(_messagePool.Element());
+        Core::ProxyType<Envelope> message(CreateProxy());
+
         string s;
         element->ToString(s);
         message->FromString(s);
+
         return message;
+      }
+
+      static Core::ProxyType<Envelope> CreateProxy()
+      {
+        return Core::ProxyType<Envelope>::Create();
       }
 
       static Core::ProxyType<Envelope> NewFromPool()
       {
-        Core::ProxyType<Envelope> message(_messagePool.Element());
+        Core::ProxyType<Envelope> message(CreateProxy());
         message->Remove(_T("response"));
         message->Remove(_T("result"));
         return message;
@@ -99,13 +115,7 @@ namespace Plugin {
           res->Result = this->Result.Response.Result;
         return res;
       }
-
-    private:
-      static Core::ProxyPoolType<Envelope> _messagePool;
     };
-
-    Core::ProxyPoolType<Envelope> Envelope::_messagePool(8);
-
 
     // -------------------------------------------------------------------------------------------------------
     //   IPluginExtended methods
@@ -213,6 +223,7 @@ namespace Plugin {
             break;
         case state::STATE_CUSTOM:
             submitMessageToRemoteService(ctx, inbound);
+            message.Release();
             break;
         }
 
@@ -224,6 +235,7 @@ namespace Plugin {
       // create a wrapper for the incoming request, take care to only
       // copy fields that are actually set
       Core::ProxyType<Envelope> message = Envelope::NewFromPool();
+      message->Id = _sequenceId++;
       message->Params.Context.Token = ctx.Token();
       message->Params.Context.ChannelId = ctx.ChannelId();
       message->Params.Request.JSONRPC = req.JSONRPC;

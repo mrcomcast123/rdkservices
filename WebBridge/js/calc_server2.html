@@ -1,10 +1,10 @@
 <html>
   <head>
-    <script src="WebBridgeSDK.js"></script>
+    <script src="WebBridgeSDK2.js"></script>
     <script>
       class Calculator extends Service {
         constructor() {
-          super("org.rdk.Calculator");
+          super("Calculator");
           this.registerMethod("add", 1, this.add.bind(this));
           this.registerMethod("sub", 1, this.sub.bind(this));
         }
@@ -27,8 +27,8 @@
       }
 
       class TextProcessor extends Service {
-          constructor() {
-          super("org.rdk.TextProcessor");
+        constructor() {
+          super("TextProcessor");
           this.registerMethod("toupper", 1, this.toupper.bind(this));
           this.registerMethod("tolower", 1, this.tolower.bind(this));
         }
@@ -50,8 +50,9 @@
 
       const service_manager = new ServiceManager();
       const server_address = "127.0.0.1";
-      service_manager.open({"host":server_address, "port":55555})
+      service_manager.open({"host":server_address, "port":55555, "namespace":"firebolt"})
         .then(() => {
+          console.log("open succees.");
           service_manager.registerService(new Calculator());
           service_manager.registerService(new TextProcessor());
         }).catch(ex => {

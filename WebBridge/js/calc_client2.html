@@ -1,0 +1,43 @@
+<html>
+  <head>
+    <script src="WebBridgeSDK2.js"></script>
+    <script>
+        const client = new WebSocket("ws://127.0.0.1:55555/jsonrpc?ns=firebolt.1", "json");
+        
+        next_id = 10;
+        count = 0;
+
+        function send(method, params) {
+            let req = {};
+            req.jsonrpc = "2.0"
+            req.id = next_id++;
+            req.method = method;
+            req.params = params;
+            const s = JSON.stringify(req);
+            console.log("send:" + s)
+            client.send(s)
+        }
+        function add(a, b) {
+            send("Calculator.1.add", [1, 2, 3, 4, 5]);
+        }
+        function upper(a) {
+            send("TextProcessor.1.toupper", "Hello World, Check the console window");
+        }
+
+        client.onopen = function(e) {
+            console.log("client connected");
+            //add(1,2)
+            //upper("Hello")
+        }
+        client.onmessage = function(msg) {
+            const req = JSON.parse(msg.data)
+            console.log("recv:" + msg.data)
+        }
+    </script>
+  </head>
+  <body>
+    Check the console window.
+    <input id="add1">1</input><input id="add2">2</input><button onclick="add(parseInt(add1.value), parseInt(add2.value))">Add</button>
+    <input id="upper1">Hello</input><button onclick="upper(upper1.value)">Upper</button>
+  </body>
+</html>

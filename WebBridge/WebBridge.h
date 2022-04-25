@@ -185,42 +185,42 @@ namespace Plugin {
             state result = state::STATE_INCORRECT_HANDLER;
             string callsign(Core::JSONRPC::Message::Callsign(designator));
 
-            // If the message is routed through the controlelr, the callsign is empty by now!
-            if ((callsign.empty()) || (callsign == _callsign)) {
-                // Seems we are on the right handler..
-                // now see if someone supports this version
-                uint8_t version = Core::JSONRPC::Message::Version(designator);
-                VersionMap::const_iterator methods = _supportedVersions.cend();
+            // Seems we are on the right handler..
+            // now see if someone supports this version
+            uint8_t version = Core::JSONRPC::Message::Version(designator);
+            VersionMap::const_iterator methods = _supportedVersions.cend();
 
-                // See if there was a version given..
-                if (version != static_cast<uint8_t>(~0)) {
-                    methods = _supportedVersions.find(version);
-                    if (methods == _supportedVersions.cend()) {
-                        result = state::STATE_INCORRECT_VERSION;
-                    }
-                }
-
-                if (result == state::STATE_INCORRECT_HANDLER) {
-                    string method = Core::JSONRPC::Message::Method(designator);
-
-                    if (method == _T("register")) {
-                        result = state::STATE_REGISTRATION;
-                    }
-                    else if (method == _T("unregister")) {
-                        result = state::STATE_UNREGISTRATION;
-                    }
-                    else if (method == _T("exists")) {
-                        result = HasMethodSupport(methods, method) ? state::STATE_EXISTS : state::STATE_NONE_EXISTING;
-                    }
-                    else if (HasMethodSupport(methods, method) == true) {
-                        result = state::STATE_CUSTOM;
-                        handler = method;
-                    }
-                    else {
-                        result = state::STATE_UNKNOWN_METHOD;
-                    }
+            // See if there was a version given..
+            if (!_supportedVersions.empty() && version != static_cast<uint8_t>(~0)) {
+                methods = _supportedVersions.find(version);
+                if (methods == _supportedVersions.cend()) {
+                    result = state::STATE_INCORRECT_VERSION;
                 }
             }
+
+            if (result == state::STATE_INCORRECT_HANDLER) {
+                string method = Core::JSONRPC::Message::Method(designator);
+
+                if (method == _T("register")) {
+                    result = state::STATE_REGISTRATION;
+                }
+                else if (method == _T("unregister")) {
+                    result = state::STATE_UNREGISTRATION;
+                }
+                else if (method == _T("exists")) {
+                    result = HasMethodSupport(methods, method) ? state::STATE_EXISTS : state::STATE_NONE_EXISTING;
+                }
+                else if (HasMethodSupport(methods, method) == true) {
+                    printf("WMR Destination 1\n");
+                    result = state::STATE_CUSTOM;
+                    handler = method;
+                }
+                else {
+                    printf("WMR Destination 2\n");
+                    result = state::STATE_CUSTOM;;//state::STATE_UNKNOWN_METHOD;
+                }
+            }
+
             return (result);
         }
         void Subscribe(const uint32_t channelId, const string& eventName, const string& callsign, Core::JSONRPC::Message& response)
