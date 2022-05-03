@@ -1,0 +1,14 @@
+[package]
+name = "firebolt"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thunder_rs = { git = "https://github.com/gladish/rdkservices.git", branch = "sprint/2203" }
+
+[lib]
+name        = "firebolt"
+path        = "src/firebolt.rs"
+crate-type  = ["dylib"]
