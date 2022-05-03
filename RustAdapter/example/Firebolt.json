@@ -1,0 +1,6 @@
+{
+ "locator":"libWPEFrameworkRustAdapter.so",
+ "classname":"RustAdapter",
+ "callsign":"firebolt",
+ "autostart":true
+}
