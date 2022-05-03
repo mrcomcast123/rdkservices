@@ -79,12 +79,12 @@ pub struct CPlugin {
   pub plugin: Box<dyn Plugin>
 }
 
-struct DefaultMessageSender {
+struct DefaultMess ageSender {
   send_func: SendToFunction,
   send_ctx: *const c_void
 }
 
-impl MessageSender for DefaultMessageSender {
+impl Message Sender for DefaultMessageSender {
   fn send_to(&self, channel_id: u32, json: String) {
     let c_str = CString::new(json).unwrap();
     unsafe {
@@ -94,7 +94,7 @@ impl MessageSender for DefaultMessageSender {
 }
 
 impl CPlugin {
-  fn on_incoming_message(&self, json_req: *const c_char, ctx: CRequestContext) {
+  fn on_incoming_m essage(&self, json_req: *const c_char, ctx: CRequestContext) {
     let req = cstr_to_string(json_req);
     let req_ctx = RequestContext {
       channel_id: ctx.channel_id,
@@ -111,7 +111,7 @@ impl CPlugin {
 }
 
 #[no_mangle]
-pub extern fn wpe_rust_plugin_create(_name: *const c_char, send_func: SendToFunction,
+pub extern fn wpe_rust_ plugin_create(_name: *const c_char, send_func: SendToFunction,
   plugin_ctx: *const c_void, meta_data: *mut ServiceMetadata) -> *mut CPlugin
 {
   assert!(!meta_data.is_null());
